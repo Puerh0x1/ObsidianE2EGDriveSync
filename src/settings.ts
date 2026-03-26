@@ -14,7 +14,7 @@ export class E2EGDriveSyncSettingTab extends PluginSettingTab {
     containerEl.empty();
     containerEl.addClass('e2e-gdrive-sync-settings');
 
-    containerEl.createEl('h1', { text: 'E2E Google Drive Sync' });
+    new Setting(containerEl).setName('E2E Google Drive sync').setHeading();
 
     this.renderEncryptionSection(containerEl);
     this.renderGoogleDriveSection(containerEl);
@@ -24,7 +24,7 @@ export class E2EGDriveSyncSettingTab extends PluginSettingTab {
   // ─── Encryption ───────────────────────────────────────────
 
   private renderEncryptionSection(el: HTMLElement): void {
-    el.createEl('h2', { text: 'Encryption' });
+    new Setting(el).setName('Encryption').setHeading();
 
     if (!this.plugin.settings.keyData) {
       this.renderKeySetup(el);
@@ -77,8 +77,9 @@ export class E2EGDriveSyncSettingTab extends PluginSettingTab {
           await this.plugin.saveSettings();
           new Notice('Encryption key created!');
           this.display();
-        } catch (e: any) {
-          new Notice(`Error: ${e.message}`);
+        } catch (e: unknown) {
+          const message = e instanceof Error ? e.message : String(e);
+          new Notice(`Error: ${message}`);
         }
       })
     );
@@ -108,8 +109,9 @@ export class E2EGDriveSyncSettingTab extends PluginSettingTab {
               await this.plugin.saveSettings();
               new Notice('Master key unlocked!');
               this.display();
-            } catch (e: any) {
-              new Notice(`Error: ${e.message}`);
+            } catch (e: unknown) {
+              const message = e instanceof Error ? e.message : String(e);
+              new Notice(`Error: ${message}`);
             }
           })
         );
@@ -176,8 +178,9 @@ export class E2EGDriveSyncSettingTab extends PluginSettingTab {
             await this.plugin.saveSettings();
             new Notice('Password changed successfully!');
             this.display();
-          } catch (e: any) {
-            new Notice(`Error: ${e.message}`);
+          } catch (e: unknown) {
+            const message = e instanceof Error ? e.message : String(e);
+            new Notice(`Error: ${message}`);
           }
         })
       );
@@ -187,18 +190,18 @@ export class E2EGDriveSyncSettingTab extends PluginSettingTab {
   // ─── Google Drive ─────────────────────────────────────────
 
   private renderGoogleDriveSection(el: HTMLElement): void {
-    el.createEl('h2', { text: 'Google Drive' });
+    new Setting(el).setName('Google Drive').setHeading();
 
     const details = el.createEl('details');
     details.createEl('summary', { text: 'Setup instructions' });
     const ol = details.createEl('ol');
-    ol.createEl('li', { text: 'Go to Google Cloud Console (console.cloud.google.com)' });
+    ol.createEl('li', { text: 'Go to Google Cloud console (console.cloud.google.com)' });
     ol.createEl('li', { text: 'Create a new project or select an existing one' });
-    ol.createEl('li', { text: 'Enable Google Drive API (APIs & Services > Enable APIs)' });
-    ol.createEl('li', { text: 'Go to APIs & Services > Credentials > Create Credentials > OAuth client ID' });
-    ol.createEl('li', { text: 'Choose type "Desktop app"' });
-    ol.createEl('li', { text: 'Copy Client ID and Client Secret into the fields below' });
-    ol.createEl('li').createEl('strong', { text: 'Add yourself as a test user in the OAuth consent screen if the app is in "Testing" mode' });
+    ol.createEl('li', { text: 'Enable Google Drive API (APIs & services > enable APIs)' });
+    ol.createEl('li', { text: 'Go to APIs & services > Credentials > Create credentials > OAuth client ID' });
+    ol.createEl('li', { text: 'Choose type "desktop app"' });
+    ol.createEl('li', { text: 'Copy client ID and client secret into the fields below' });
+    ol.createEl('li').createEl('strong', { text: 'Add yourself as a test user in the OAuth consent screen if the app is in "testing" mode' });
 
     let connectBtn: HTMLButtonElement | null = null;
 
@@ -211,7 +214,7 @@ export class E2EGDriveSyncSettingTab extends PluginSettingTab {
 
     new Setting(el)
       .setName('Client ID')
-      .setDesc('OAuth 2.0 Client ID')
+      .setDesc('OAuth 2.0 client ID')
       .addText(t =>
         t.setPlaceholder('...apps.googleusercontent.com')
           .setValue(this.plugin.settings.googleClientId)
@@ -223,9 +226,9 @@ export class E2EGDriveSyncSettingTab extends PluginSettingTab {
       );
 
     new Setting(el)
-      .setName('Client Secret')
+      .setName('Client secret')
       .addText(t =>
-        t.setPlaceholder('GOCSPX-...')
+        t.setPlaceholder('Enter client secret')
           .setValue(this.plugin.settings.googleClientSecret)
           .then(c => { c.inputEl.type = 'password'; })
           .onChange(async v => {
@@ -252,8 +255,9 @@ export class E2EGDriveSyncSettingTab extends PluginSettingTab {
               await this.plugin.driveClient.authorize();
               new Notice('Google Drive connected!');
               this.display();
-            } catch (e: any) {
-              new Notice(`Auth error: ${e.message}`);
+            } catch (e: unknown) {
+              const message = e instanceof Error ? e.message : String(e);
+              new Notice(`Auth error: ${message}`);
             }
           });
       });
@@ -274,7 +278,7 @@ export class E2EGDriveSyncSettingTab extends PluginSettingTab {
   // ─── Sync ─────────────────────────────────────────────────
 
   private renderSyncSection(el: HTMLElement): void {
-    el.createEl('h2', { text: 'Sync' });
+    new Setting(el).setName('Sync').setHeading();
 
     new Setting(el)
       .setName('Auto-sync')

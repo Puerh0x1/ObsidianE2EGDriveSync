@@ -39,12 +39,12 @@ export default class E2EGDriveSyncPlugin extends Plugin {
           this.settings.keyData
         );
       } catch {
-        new Notice('E2E GDrive Sync: auto-unlock failed — check your password');
+        new Notice('E2E Google Drive sync: auto-unlock failed — check your password');
       }
     }
 
     // Ribbon icon
-    this.addRibbonIcon('refresh-cw', 'E2E Google Drive Sync', () => this.runSync());
+    this.addRibbonIcon('refresh-cw', 'E2E Google Drive sync', () => this.runSync());
 
     // Status bar
     this.statusBarEl = this.addStatusBarItem();
@@ -121,10 +121,11 @@ export default class E2EGDriveSyncPlugin extends Plugin {
       const msg = parts.length ? `Sync done: ${parts.join(', ')}` : 'Sync: up to date';
       new Notice(msg);
       this.updateStatusBar();
-    } catch (e: any) {
-      new Notice(`Sync error: ${e.message}`);
+    } catch (e: unknown) {
+      const message = e instanceof Error ? e.message : String(e);
+      new Notice(`Sync error: ${message}`);
       this.updateStatusBar('error');
-      console.error('E2E GDrive Sync:', e);
+      console.error('E2E Google Drive sync:', e);
     }
   }
 
@@ -135,7 +136,7 @@ export default class E2EGDriveSyncPlugin extends Plugin {
 
     if (this.settings.autoSync && this.settings.syncIntervalMinutes > 0) {
       const ms = this.settings.syncIntervalMinutes * 60 * 1000;
-      this.autoSyncIntervalId = window.setInterval(() => this.runSync(), ms);
+      this.autoSyncIntervalId = window.setInterval(() => { void this.runSync(); }, ms);
       this.registerInterval(this.autoSyncIntervalId);
     }
   }
@@ -153,7 +154,7 @@ export default class E2EGDriveSyncPlugin extends Plugin {
     if (!this.statusBarEl) return;
 
     if (text) {
-      this.statusBarEl.setText(`GDrive: ${text}`);
+      this.statusBarEl.setText(`Google Drive: ${text}`);
       return;
     }
 
@@ -161,11 +162,11 @@ export default class E2EGDriveSyncPlugin extends Plugin {
     const connected = this.driveClient?.isConfigured();
 
     if (!unlocked) {
-      this.statusBarEl.setText('GDrive: locked');
+      this.statusBarEl.setText('Google Drive: locked');
     } else if (!connected) {
-      this.statusBarEl.setText('GDrive: not connected');
+      this.statusBarEl.setText('Google Drive: not connected');
     } else {
-      this.statusBarEl.setText('GDrive: ready');
+      this.statusBarEl.setText('Google Drive: ready');
     }
   }
 }

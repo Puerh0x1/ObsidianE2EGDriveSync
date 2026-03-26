@@ -106,9 +106,10 @@ export class SyncEngine {
               stats.conflicts++;
               break;
           }
-        } catch (e: any) {
+        } catch (e: unknown) {
           console.error(`Sync error for ${action.localPath}:`, e);
-          new Notice(`Error: ${action.localPath} — ${e.message}`);
+          const message = e instanceof Error ? e.message : String(e);
+          new Notice(`Error: ${action.localPath} — ${message}`);
         }
       }
 
@@ -132,7 +133,7 @@ export class SyncEngine {
   }
 
   private shouldExclude(path: string): boolean {
-    const alwaysExclude = ['.obsidian/', '.trash/', '.git/'];
+    const alwaysExclude = [`${this.vault.configDir}/`, '.trash/', '.git/'];
     for (const prefix of alwaysExclude) {
       if (path.startsWith(prefix)) return true;
     }
@@ -306,11 +307,12 @@ export class SyncEngine {
       await this.vault.createBinary(localPath, content);
     }
 
-    const file = this.vault.getFileByPath(localPath) as TFile;
+    const file = this.vault.getFileByPath(localPath);
+    const localMtime = file instanceof TFile ? file.stat.mtime : Date.now();
 
     this.settings.syncState[localPath] = {
       driveFileId: remote.id,
-      localMtime: file?.stat.mtime ?? Date.now(),
+      localMtime,
       contentHash,
       remoteChecksum: remote.md5Checksum || '',
       lastSynced: Date.now(),

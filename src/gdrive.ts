@@ -1,6 +1,12 @@
 import { requestUrl } from 'obsidian';
 import { DriveFile, PluginSettings } from './types';
 
+interface TokenResponse {
+  access_token: string;
+  refresh_token?: string;
+  expires_in: number;
+}
+
 const GOOGLE_AUTH_URL = 'https://accounts.google.com/o/oauth2/v2/auth';
 const GOOGLE_TOKEN_URL = 'https://oauth2.googleapis.com/token';
 const DRIVE_API = 'https://www.googleapis.com/drive/v3';
@@ -31,61 +37,70 @@ export class GoogleDriveClient {
   // --- OAuth 2.0 with loopback redirect ---
 
   async authorize(): Promise<void> {
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const http = require('http') as typeof import('http');
+    const http = await import('http');
 
     return new Promise((resolve, reject) => {
       let resolved = false;
 
-      const server = http.createServer(async (req: any, res: any) => {
+      const server = http.createServer((req, res) => {
         if (resolved) return;
-        try {
-          const url = new URL(req.url!, 'http://127.0.0.1');
-          const code = url.searchParams.get('code');
-          const error = url.searchParams.get('error');
-
-          if (error) {
-            res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
-            res.end(this.authPage(`Error: ${error}`, false));
-            resolved = true;
-            server.close();
-            reject(new Error(`OAuth error: ${error}`));
-            return;
-          }
-
-          if (!code) {
-            res.writeHead(400, { 'Content-Type': 'text/plain' });
-            res.end('Missing code parameter');
-            return;
-          }
-
-          const port = (server.address() as any).port;
-          const tokens = await this.exchangeCode(code, `http://127.0.0.1:${port}`);
-
-          await this.onTokenUpdate({
-            googleAccessToken: tokens.access_token,
-            googleRefreshToken: tokens.refresh_token || this.settings.googleRefreshToken,
-            googleTokenExpiry: Date.now() + tokens.expires_in * 1000,
-          });
-
-          res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
-          res.end(this.authPage('Authorization successful! You can close this tab.', true));
-          resolved = true;
-          server.close();
-          resolve();
-        } catch (e: any) {
-          if (!resolved) {
-            res.writeHead(500, { 'Content-Type': 'text/html; charset=utf-8' });
-            res.end(this.authPage(`Error: ${e.message}`, false));
-            resolved = true;
-            server.close();
-            reject(e);
-          }
+        const requestUrl = req.url;
+        if (!requestUrl) {
+          res.writeHead(400, { 'Content-Type': 'text/plain' });
+          res.end('Missing URL');
+          return;
         }
+
+        void (async () => {
+          try {
+            const url = new URL(requestUrl, 'http://127.0.0.1');
+            const code = url.searchParams.get('code');
+            const error = url.searchParams.get('error');
+
+            if (error) {
+              res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
+              res.end(this.authPage(`Error: ${error}`, false));
+              resolved = true;
+              server.close();
+              reject(new Error(`OAuth error: ${error}`));
+              return;
+            }
+
+            if (!code) {
+              res.writeHead(400, { 'Content-Type': 'text/plain' });
+              res.end('Missing code parameter');
+              return;
+            }
+
+            const port = (server.address() as { port: number }).port;
+            const tokens = await this.exchangeCode(code, `http://127.0.0.1:${port}`);
+
+            await this.onTokenUpdate({
+              googleAccessToken: tokens.access_token,
+              googleRefreshToken: tokens.refresh_token || this.settings.googleRefreshToken,
+              googleTokenExpiry: Date.now() + tokens.expires_in * 1000,
+            });
+
+            res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
+            res.end(this.authPage('Authorization successful! You can close this tab.', true));
+            resolved = true;
+            server.close();
+            resolve();
+          } catch (e: unknown) {
+            if (!resolved) {
+              const message = e instanceof Error ? e.message : String(e);
+              res.writeHead(500, { 'Content-Type': 'text/html; charset=utf-8' });
+              res.end(this.authPage(`Error: ${message}`, false));
+              resolved = true;
+              server.close();
+              reject(e instanceof Error ? e : new Error(message));
+            }
+          }
+        })();
       });
 
       server.listen(0, '127.0.0.1', () => {
-        const port = (server.address() as any).port;
+        const port = (server.address() as { port: number }).port;
         const params = new URLSearchParams({
           client_id: this.settings.googleClientId,
           redirect_uri: `http://127.0.0.1:${port}`,
@@ -120,7 +135,7 @@ export class GoogleDriveClient {
       <h1>${message}</h1><p>Return to Obsidian.</p></div></body></html>`;
   }
 
-  private async exchangeCode(code: string, redirectUri: string): Promise<any> {
+  private async exchangeCode(code: string, redirectUri: string): Promise<TokenResponse> {
     const response = await requestUrl({
       url: GOOGLE_TOKEN_URL,
       method: 'POST',
@@ -191,7 +206,7 @@ export class GoogleDriveClient {
       return search.json.files[0].id;
     }
 
-    const metadata: Record<string, any> = { name, mimeType: FOLDER_MIME };
+    const metadata: { name: string; mimeType: string; parents?: string[] } = { name, mimeType: FOLDER_MIME };
     if (parentId) metadata.parents = [parentId];
 
     const create = await requestUrl({
@@ -295,7 +310,7 @@ export class GoogleDriveClient {
 
   private buildMultipartBody(
     boundary: string,
-    metadata: Record<string, any>,
+    metadata: { name: string; parents?: string[] },
     fileData: ArrayBuffer
   ): ArrayBuffer {
     const metaJson = JSON.stringify(metadata);
