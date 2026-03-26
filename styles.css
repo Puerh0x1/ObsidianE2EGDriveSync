@@ -1,0 +1,26 @@
+.e2e-gdrive-sync-settings h2 {
+  margin-top: 1.5em;
+  padding-bottom: 0.3em;
+  border-bottom: 1px solid var(--background-modifier-border);
+}
+
+.e2e-gdrive-sync-settings details {
+  margin-bottom: 1em;
+  padding: 0.5em;
+  background: var(--background-secondary);
+  border-radius: 6px;
+}
+
+.e2e-gdrive-sync-settings details summary {
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.e2e-gdrive-sync-settings details ol {
+  margin-top: 0.5em;
+  padding-left: 1.5em;
+}
+
+.e2e-gdrive-sync-settings details li {
+  margin-bottom: 0.3em;
+}
