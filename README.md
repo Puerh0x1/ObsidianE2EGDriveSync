@@ -1,6 +1,6 @@
 # E2E Google Drive Sync
 
-Syncs your Obsidian vault with Google Drive, encrypting all data before upload and storing keys exclusively on your device.
+Syncs your vault with Google Drive, encrypting all data with AES-256 before upload and storing keys exclusively on your device.
 
 ## Features
 
