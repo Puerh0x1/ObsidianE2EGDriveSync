@@ -39,12 +39,12 @@ export default class E2EGDriveSyncPlugin extends Plugin {
           this.settings.keyData
         );
       } catch {
-        new Notice('E2E Google Drive sync: auto-unlock failed — check your password');
+        new Notice('Auto-unlock failed — check your password');
       }
     }
 
     // Ribbon icon
-    this.addRibbonIcon('refresh-cw', 'E2E Google Drive sync', () => this.runSync());
+    this.addRibbonIcon('refresh-cw', 'Sync vault', () => this.runSync());
 
     // Status bar
     this.statusBarEl = this.addStatusBarItem();

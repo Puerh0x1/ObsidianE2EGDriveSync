@@ -14,8 +14,6 @@ export class E2EGDriveSyncSettingTab extends PluginSettingTab {
     containerEl.empty();
     containerEl.addClass('e2e-gdrive-sync-settings');
 
-    new Setting(containerEl).setName('E2E Google Drive sync').setHeading();
-
     this.renderEncryptionSection(containerEl);
     this.renderGoogleDriveSection(containerEl);
     this.renderSyncSection(containerEl);
@@ -195,13 +193,13 @@ export class E2EGDriveSyncSettingTab extends PluginSettingTab {
     const details = el.createEl('details');
     details.createEl('summary', { text: 'Setup instructions' });
     const ol = details.createEl('ol');
-    ol.createEl('li', { text: 'Go to Google Cloud console (console.cloud.google.com)' });
+    ol.createEl('li', { text: 'Go to console.cloud.google.com' });
     ol.createEl('li', { text: 'Create a new project or select an existing one' });
-    ol.createEl('li', { text: 'Enable Google Drive API (APIs & services > enable APIs)' });
-    ol.createEl('li', { text: 'Go to APIs & services > Credentials > Create credentials > OAuth client ID' });
+    ol.createEl('li', { text: 'Enable the Google Drive API for your project' });
+    ol.createEl('li', { text: 'Navigate to the credentials page and create a new client' });
     ol.createEl('li', { text: 'Choose type "desktop app"' });
     ol.createEl('li', { text: 'Copy client ID and client secret into the fields below' });
-    ol.createEl('li').createEl('strong', { text: 'Add yourself as a test user in the OAuth consent screen if the app is in "testing" mode' });
+    ol.createEl('li').createEl('strong', { text: 'Add yourself as a test user in the consent screen if the app is in "testing" mode' });
 
     let connectBtn: HTMLButtonElement | null = null;
 
@@ -214,7 +212,7 @@ export class E2EGDriveSyncSettingTab extends PluginSettingTab {
 
     new Setting(el)
       .setName('Client ID')
-      .setDesc('OAuth 2.0 client ID')
+      .setDesc('Enter the client ID from your project')
       .addText(t =>
         t.setPlaceholder('...apps.googleusercontent.com')
           .setValue(this.plugin.settings.googleClientId)
@@ -251,7 +249,7 @@ export class E2EGDriveSyncSettingTab extends PluginSettingTab {
           .setDisabled(!this.plugin.settings.googleClientId || !this.plugin.settings.googleClientSecret)
           .onClick(async () => {
             try {
-              new Notice('Opening Google authorization page...');
+              new Notice('Opening authorization page...');
               await this.plugin.driveClient.authorize();
               new Notice('Google Drive connected!');
               this.display();
