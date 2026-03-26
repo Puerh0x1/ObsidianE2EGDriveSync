@@ -200,6 +200,15 @@ export class E2EGDriveSyncSettingTab extends PluginSettingTab {
     ol.createEl('li', { text: 'Copy Client ID and Client Secret into the fields below' });
     ol.createEl('li').createEl('strong', { text: 'Add yourself as a test user in the OAuth consent screen if the app is in "Testing" mode' });
 
+    let connectBtn: HTMLButtonElement | null = null;
+
+    const updateConnectBtn = () => {
+      if (connectBtn) {
+        connectBtn.disabled =
+          !this.plugin.settings.googleClientId || !this.plugin.settings.googleClientSecret;
+      }
+    };
+
     new Setting(el)
       .setName('Client ID')
       .setDesc('OAuth 2.0 Client ID')
@@ -209,6 +218,7 @@ export class E2EGDriveSyncSettingTab extends PluginSettingTab {
           .onChange(async v => {
             this.plugin.settings.googleClientId = v.trim();
             await this.plugin.saveSettings();
+            updateConnectBtn();
           })
       );
 
@@ -221,6 +231,7 @@ export class E2EGDriveSyncSettingTab extends PluginSettingTab {
           .onChange(async v => {
             this.plugin.settings.googleClientSecret = v.trim();
             await this.plugin.saveSettings();
+            updateConnectBtn();
           })
       );
 
@@ -229,7 +240,8 @@ export class E2EGDriveSyncSettingTab extends PluginSettingTab {
     new Setting(el)
       .setName('Connection')
       .setDesc(connected ? 'Connected to Google Drive' : 'Not connected')
-      .addButton(btn =>
+      .addButton(btn => {
+        connectBtn = btn.buttonEl;
         btn
           .setButtonText(connected ? 'Reconnect' : 'Connect Google Drive')
           .setCta()
@@ -243,8 +255,8 @@ export class E2EGDriveSyncSettingTab extends PluginSettingTab {
             } catch (e: any) {
               new Notice(`Auth error: ${e.message}`);
             }
-          })
-      );
+          });
+      });
 
     new Setting(el)
       .setName('Drive folder name')

@@ -2,8 +2,9 @@
   "id": "e2e-gdrive-sync",
   "name": "E2E Google Drive Sync",
   "version": "1.0.0",
-  "minAppVersion": "1.5.0",
-  "description": "End-to-end encrypted sync of your Obsidian vault with Google Drive using AES-256-GCM",
-  "author": "E2EGDriveSync",
+  "minAppVersion": "1.0.0",
+  "description": "Syncs your Obsidian vault with Google Drive, encrypting all data before upload and storing keys exclusively on your device.",
+  "author": "Nikita Sizikov",
+  "authorUrl": "https://github.com/Puerh0x1",
   "isDesktopOnly": true
 }
