@@ -37,7 +37,11 @@ export class GoogleDriveClient {
   // --- OAuth 2.0 with loopback redirect ---
 
   async authorize(): Promise<void> {
-    const http = await import('http');
+    if (typeof require !== 'function') {
+      throw new Error('Google Drive authorization requires desktop Obsidian');
+    }
+
+    const http = require('http') as typeof import('http');
 
     return new Promise((resolve, reject) => {
       let resolved = false;
