@@ -41,7 +41,7 @@ export class GoogleDriveClient {
       throw new Error('Google Drive authorization requires desktop Obsidian');
     }
 
-    const http = require('http') as typeof import('http');
+    const http = await import('http');
 
     return new Promise((resolve, reject) => {
       let resolved = false;
